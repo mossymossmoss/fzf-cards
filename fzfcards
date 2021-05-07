@@ -1,0 +1,61 @@
+#!/bin/sh
+
+# where any temporary files will be stored
+cachedir=${XDG_CACHE_HOME:-/tmp/fzfcards}
+
+# colors for answer feedback
+correctcolor='\033[0;32m'
+incorrectcolor='\033[0;31m'
+defaultcolor='\033[0m'
+
+# the default number of questions to ask before stopping the program
+questionsnum=5
+
+# the default side of the cards to quiz you on
+side="1"
+
+clear
+
+while getopts 'q:fstr' OPTION; do
+	case $OPTION in
+		f) side="1" ;;
+		s) side="2" ;;
+		# flips between sides to question on
+		t) side="turn" ;;
+		# picks random side to question on
+		r) side="random" ;;
+		# amount of questions to ask
+		q) questionsnum=$OPTARG ;;
+	esac
+done
+
+for i in $(seq 1 $questionsnum); do
+	if [ "$side" == "1" ]; then
+		promptside="side1"
+		answerside="side2"
+	elif [ "$side" == "2" ]; then
+                promptside="side2"
+                answerside="side1"
+        elif [ "$side" == "turn" ]; then
+		promptside="side$(($i % 2 + 1))"
+		answerside="side$((($i + 1) % 2 + 1))"
+        elif [ "$side" == "random" ]; then
+		randomnum=$RANDOM
+                promptside="side$(($randomnum % 2 + 1))"
+                answerside="side$((($randomnum + 1) % 2 + 1))"
+	fi
+	index=$((RANDOM % $(wc -l < $promptside) + 1))
+	prompt="$(sed -n $index'p' $promptside)"
+	answer="$(sed -n $index'p' $answerside)"
+	input="$(fzf --prompt="$prompt: " < $answerside)"
+	
+	echo "$prompt: $input"
+	if [ "$input" == "$answer" ]; then
+		echo -e "${correctcolor}Correct, '$prompt' translates to '$answer'${defaultcolor}"
+	else
+		echo -e "${incorrectcolor}Incorrect, '$prompt' translates to '$answer'${defaultcolor}"
+	fi
+	read </dev/tty
+
+	rm $cachedir/answers.txt
+done
