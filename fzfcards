@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # where any temporary files will be stored
 cachedir=${XDG_CACHE_HOME:-/tmp/fzfcards}
