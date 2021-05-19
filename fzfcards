@@ -13,9 +13,11 @@ side="1"
 
 clear
 
-while getopts 'q:fstr' OPTION; do
+while getopts ':q:d:fstr' OPTION; do
 	case $OPTION in
+		# questions on the first side
 		f) side="1" ;;
+		# questions on the second side
 		s) side="2" ;;
 		# flips between sides to question on
 		t) side="turn" ;;
@@ -41,8 +43,6 @@ for i in $(seq 1 $questionsnum); do
 		randomnum=$RANDOM
                 promptside="side$(($randomnum % 2 + 1))"
                 answerside="side$((($randomnum + 1) % 2 + 1))";;
-		*)
-		echo "Unknown flag"
 	esac
 	index=$((RANDOM % $(wc -l < $promptside) + 1))
 	prompt="$(sed -n $index'p' $promptside)"
